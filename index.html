@@ -3732,7 +3732,7 @@ function playJueBieShu() {
         jueBieShuAudio = null;
     }
     jueBieShuAudio = new Audio('music/诀别书.mp3');
-    jueBieShuAudio.preload = 'none';
+    jueBieShuAudio.preload = 'auto';
     jueBieShuAudio.volume = 1.0;
     return jueBieShuAudio.play().catch(error => {
         console.log('诀别书音频播放失败:', error);
