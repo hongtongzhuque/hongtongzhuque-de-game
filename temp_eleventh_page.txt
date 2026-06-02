@@ -1,0 +1,58 @@
+<!-- 第十一页：4-KI-01-07-09 -->
+<div class="screen hidden" id="eleventhScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="eleventhInput" placeholder="输入线索...">
+        <span class="page-name">4-KI-01-07-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker49">@</span>
+            <span class="content">厨房门被推开</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker50">07</span>
+            <span class="content">是来厨房帮忙的吗，我觉得你好像很眼熟，我们是不是以前见过？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker51">09</span>
+            <span class="content">哈哈，这种搭讪技巧过于老套了。除了几个情侣之外，其他所有人应该都没见过面才对，大家都是才进入社团的人。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker52">07</span>
+            <span class="content">可是我真的觉得你很眼熟，你是不是还有个妹妹。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker53">09</span>
+            <span class="content">苏雨桐都知道的，我是一个独子，没有什么妹妹。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker54">07</span>
+            <span class="content">谁是苏雨桐，车上坐你旁边那个女生吗？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker55">@</span>
+            <span class="content">厨房门被打开了，07和09对话戛然而止。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker56">01</span>
+            <span class="content">你们两个已经在这里了啊，需要我帮什么忙吗？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker57">09</span>
+            <span class="content">你自己看着来吧，怎么只有你过来了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker58">01</span>
+            <span class="content">许佳宁一直在客厅躺着，沈泽远去叫他哥和赵欣怡（Shen）一起来厨房帮忙了，过一会应该也过来了吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker59">@</span>
+            <span class="content">对话结束</span>
+        </div>
+    </div>
+</div>

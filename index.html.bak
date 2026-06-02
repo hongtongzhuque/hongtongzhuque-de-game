@@ -1,0 +1,3376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <!-- 危险警告遮罩 -->
+<div id="dangerOverlay" class="danger-overlay hidden" aria-hidden="true">
+    <div class="danger-text">未撰写该线索</div>
+</div>
+
+<head>
+<meta charset="UTF-8">
+<title>键入死亡</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap'); /* 引入马善政毛笔字体 */
+    body {
+        background: #060606;
+        color: #fff;
+        font-family: "Courier New", monospace;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: 0.6px;
+    }
+
+    .screen {
+        width: 820px;
+        height: 900px;
+        box-sizing: border-box;
+        padding: 18px 20px;
+        border: 2px solid #5a4a30;
+        background: #0a0a0a;
+        box-shadow:
+            inset 0 0 60px rgba(0,0,0,0.5),
+            inset 0 0 120px rgba(80,50,20,0.08),
+            0 0 0 1px rgba(140,110,60,0.3),
+            0 0 0 4px rgba(0,0,0,0.4),
+            0 0 0 5px rgba(100,75,35,0.25),
+            2px 4px 12px rgba(0,0,0,0.6),
+            0 0 2px rgba(180,140,80,0.15);
+        outline: 1px solid rgba(80,55,25,0.5);
+        outline-offset: -8px;
+        white-space: pre-wrap;
+        position: relative;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #444 #000;
+    }
+
+    .screen::-webkit-scrollbar {
+        width: 8px;
+    }
+    .screen::-webkit-scrollbar-track {
+        background: #000;
+        border-left: 1px solid #333;
+    }
+    .screen::-webkit-scrollbar-thumb {
+        background: #666;
+        border-radius: 4px;
+    }
+    .screen::-webkit-scrollbar-thumb:hover {
+        background: #888;
+    }
+
+.screen::before {// 背景文字
+        content: "键入死亡";
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 120px;
+       font-family: "Ma Shan Zheng", "KaiTi", "STKaiti", cursive;
+        color: rgba(128, 128, 128, 0.08);
+        font-weight: normal;
+        letter-spacing: 20px; /* 调整字间距，数值越大字越散，可根据视觉效果自行调整 */
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 0;
+        user-select: none;
+    }
+
+    .screen > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .input-line {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+        gap: 12px;
+    }
+
+    input {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid #666;
+        border-radius: 2px;
+        color: #fff;
+        font-family: inherit;
+        font-size: inherit;
+        letter-spacing: 0.6px;
+        outline: none;
+        padding: 6px 8px;
+        box-shadow: inset 0 0 4px rgba(255,255,255,0.05);
+        transition: all 0.2s ease;
+        width: 240px;
+        flex-shrink: 0;
+    }
+
+    input:focus {
+        border-color: #fff;
+        box-shadow: 
+            inset 0 0 6px rgba(255,255,255,0.1),
+            0 0 4px rgba(255,255,255,0.1);
+    }
+
+    .page-name {
+        color: #ff69b4;
+        font-size: 0.9em;
+        white-space: nowrap;
+        opacity: 0.9;
+    }
+
+    .return-btn {
+        color: #ff69b4;
+        font-size: 0.9em;
+        white-space: nowrap;
+        cursor: pointer;
+        opacity: 0.9;
+        transition: opacity 0.2s;
+    }
+
+    .return-btn:hover {
+        opacity: 1;
+        text-decoration: underline;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .code {
+        cursor: pointer;
+        text-decoration: underline;
+        color: #888;
+        margin-top: 10px;
+        margin-right: 20px;
+        display: inline-block;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .code:hover {
+        color: #fff;
+    }
+
+    .code.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .unlock-message {
+        color: #ffffff;
+        margin-bottom: 2px;
+        font-size: 1.5em;
+        opacity: 0;
+        visibility: hidden;
+        display: block;
+        transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    #infoScreen .input-line {
+        margin-bottom: 2px;
+    }
+
+    .unlock-message.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .unlock-message.hidden {
+        display: block;
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .codes-container {
+        margin-top: 1px;
+    }
+
+    .pixel-book {
+        position: absolute;
+        top: 100px;
+        right: 200px;
+        width: 100px;
+        height: 155px;
+        z-index: 100;
+        perspective: 1200px;
+        transform: rotate(-3deg);
+    }
+
+    .book-cover {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #5D3A1A 0%, #3E2210 40%, #2D1A0A 100%);
+        border: 3px solid #4A2A10;
+        border-radius: 3px 6px 6px 3px;
+        box-shadow:
+            inset 0 0 30px rgba(0,0,0,0.5),
+            3px 4px 10px rgba(0,0,0,0.6),
+            5px 6px 20px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+
+    .book-cover::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        right: 6px;
+        bottom: 6px;
+        border: 1px solid rgba(180,140,80,0.4);
+        border-radius: 1px 4px 4px 1px;
+        pointer-events: none;
+    }
+
+    .book-cover::after {
+        content: '';
+        position: absolute;
+        top: 14px;
+        left: 10px;
+        right: 10px;
+        bottom: 14px;
+        border: 1px solid rgba(180,140,80,0.25);
+        border-radius: 1px 3px 3px 1px;
+        pointer-events: none;
+    }
+
+    .book-spine {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 16px;
+        background: linear-gradient(90deg, #2D1A0A 0%, #4A2810 50%, #3E2210 100%);
+        border-right: 2px solid rgba(180,140,80,0.3);
+        border-radius: 3px 0 0 3px;
+        z-index: 2;
+    }
+
+    .book-spine::before {
+        content: '';
+        position: absolute;
+        top: 12px;
+        left: 3px;
+        right: 3px;
+        bottom: 12px;
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(180,140,80,0.2) 0px,
+            rgba(180,140,80,0.2) 1px,
+            transparent 1px,
+            transparent 8px
+        );
+        pointer-events: none;
+    }
+
+    .book-corner {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border: 2px solid rgba(180,140,80,0.5);
+        pointer-events: none;
+        z-index: 3;
+    }
+
+    .book-corner.top-left {
+        top: 5px;
+        left: 5px;
+        border-right: none;
+        border-bottom: none;
+        border-radius: 2px 0 0 0;
+    }
+
+    .book-corner.top-right {
+        top: 5px;
+        right: 5px;
+        border-left: none;
+        border-bottom: none;
+        border-radius: 0 2px 0 0;
+    }
+
+    .book-corner.bottom-left {
+        bottom: 5px;
+        left: 5px;
+        border-right: none;
+        border-top: none;
+        border-radius: 0 0 0 2px;
+    }
+
+    .book-corner.bottom-right {
+        bottom: 5px;
+        right: 5px;
+        border-left: none;
+        border-top: none;
+        border-radius: 0 0 2px 0;
+    }
+
+    .book-pages {
+        position: absolute;
+        top: 8px;
+        left: 18px;
+        right: 6px;
+        bottom: 8px;
+        transform-style: preserve-3d;
+    }
+
+    .page {
+        position: absolute;
+        inset: 0;
+        background:
+            repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 6px,
+                rgba(160,140,100,0.35) 6px,
+                rgba(160,140,100,0.35) 7px
+            ),
+            linear-gradient(to bottom, #F5EDE0 0%, #EDE0CC 100%);
+        border: 1px solid #c8b898;
+        border-left: 2px solid #d4c4a4;
+        border-radius: 0 2px 2px 0;
+        box-shadow:
+            inset 0 0 6px rgba(0,0,0,0.04),
+            0 1px 2px rgba(0,0,0,0.08);
+        transform-origin: right center;
+        opacity: 1;
+        backface-visibility: hidden;
+        transform-style: preserve-3d;
+        will-change: transform;
+    }
+
+    .page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, transparent 8%, transparent 92%, rgba(0,0,0,0.03) 100%);
+        pointer-events: none;
+    }
+
+    .page::after {
+        content: "";
+        position: absolute;
+        inset: 5px;
+        background:
+            repeating-linear-gradient(
+                to bottom,
+                rgba(180,160,120,0.1),
+                rgba(180,160,120,0.1) 1px,
+                transparent 1px,
+                transparent 7px
+            );
+        border-radius: 0 1px 1px 0;
+        transform: rotateY(180deg);
+        backface-visibility: hidden;
+    }
+
+    .page-1, .page-2, .page-3, .page-4 {
+        animation: none;
+    }
+
+    .page-1 { z-index: 4; }
+    .page-2 { z-index: 3; }
+    .page-3 { z-index: 2; }
+    .page-4 { z-index: 1; }
+
+    .pixel-book.book-open .page-1 {
+        animation: flip-page-open 1.0s ease-in-out 0s 1 forwards;
+    }
+
+    .pixel-book.book-open .page-2 {
+        animation: flip-page-open 1.0s ease-in-out 0.1s 1 forwards;
+    }
+
+    .pixel-book.book-open .page-3 {
+        animation: flip-page-open 1.0s ease-in-out 0.2s 1 forwards;
+    }
+
+    .pixel-book.book-open .page-4 {
+        animation: flip-page-open 1.0s ease-in-out 0.3s 1 forwards;
+    }
+
+    @keyframes flip-page-open {
+        0% {
+            transform: rotateY(0deg);
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.08);
+        }
+        40% {
+            transform: rotateY(28deg);
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.04), -2px 1px 5px rgba(0,0,0,0.12);
+        }
+        75% {
+            transform: rotateY(18deg);
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.04), -2px 1px 3px rgba(0,0,0,0.1);
+        }
+        100% {
+            transform: rotateY(20deg);
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.04), -1px 0px 3px rgba(0,0,0,0.08);
+        }
+    }
+
+    .marker {
+        color: #a064dd;
+        cursor: pointer;
+        border: 1px solid transparent;
+        padding: 0 4px;
+        margin-right: 8px;
+        flex-shrink: 0;
+        display: inline-block;
+        min-width: 20px;
+        text-align: center;
+        outline: none;
+        user-select: none;
+    }
+
+    .marker:hover {
+        border-color: #555;
+    }
+
+    .marker:focus {
+        border-color: #b366ff;
+        background: rgba(179, 102, 255, 0.1);
+    }
+
+    .content {
+        flex: 1;
+        word-break: break-word;
+    }
+
+    .third-line, .fourth-line, .fifth-line {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .third-text, .fourth-text, .fifth-text {
+        margin-top: 10px;
+        display: block;
+    }
+
+    .reset-btn {
+        color: #ff4444;
+        cursor: pointer;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+        display: inline-block;
+        text-decoration: underline;
+    }
+
+    .reset-btn:hover {
+        color: #ff6666;
+    }
+
+/* 重置对话框样式 */
+    .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6); /* 修改为半透明黑色背景，避免全屏红色 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1500;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 520ms cubic-bezier(.2, .05, .1, 1);
+    }
+
+    .modal.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transition: opacity 520ms cubic-bezier(.2, .05, .1, 1), visibility 0s linear 0s;
+    }
+
+    /* 危险警告遮罩 */
+    .danger-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        background: rgba(80, 10, 10, 0.92);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+    }
+
+    .danger-overlay.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transition: opacity 0.2s ease, visibility 0s linear 0s;
+    }
+
+
+
+.danger-text {
+    color: #ff3333;
+    font-size: 60px;
+    font-family: "Ma Shan Zheng", "KaiTi", cursive;
+    letter-spacing: 8px;
+    text-shadow: 0 0 20px rgba(255, 0, 0, 0.8), 0 0 40px rgba(255, 0, 0, 0.4);
+    animation: danger-pulse 0.4s ease-in-out infinite alternate, danger-shake 0.1s linear infinite;
+    z-index: 2002;          /* 比对角线的2001更高，确保文字在上层 */
+    position: relative;      /* 确保z-index生效 */
+}
+
+
+        @keyframes danger-pulse {
+            0% { opacity: 0.6; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+
+        @keyframes danger-shake {
+            0% { transform: translate(0, 0); }
+            15% { transform: translate(-4px, 1px); }
+            30% { transform: translate(3px, -1px); }
+            45% { transform: translate(-2px, 2px); }
+            60% { transform: translate(4px, 0); }
+            75% { transform: translate(-3px, -1px); }
+            90% { transform: translate(1px, 1px); }
+            100% { transform: translate(0, 0); }
+        }
+
+
+
+    .modal-box {/* 回到原点确认对话框样式 */
+        background: #060606;
+        border: 1.5px solid #fff;
+        border-radius: 4px;
+        padding: 18px 20px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,.06), inset 0 0 20px rgba(255,255,255,.03);
+    }
+
+    /* 对话框恐怖振动效果 */
+    .modal-box.shaking {
+        animation: horror-shake 0.15s ease-in-out infinite, horror-flicker 0.1s steps(2) infinite;
+        box-shadow: 0 0 20px rgba(255, 68, 68, 0.6), 0 0 40px rgba(255, 0, 0, 0.3), inset 0 0 20px rgba(255, 68, 68, 0.1);
+        border-color: #ff4444;
+    }
+
+    @keyframes horror-shake {
+        0% { transform: translateX(-8px); }
+        25% { transform: translateX(8px); }
+        50% { transform: translateX(-6px); }
+        75% { transform: translateX(6px); }
+        100% { transform: translateX(-8px); }
+    }
+
+    @keyframes horror-flicker {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+
+    .modal-title {
+        color: #ff4444;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .modal-body {
+        color: #ddd;
+        margin-bottom: 12px;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .btn {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid #666;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .btn.confirm {
+        border-color: #ff4444;
+        color: #ff4444;
+    }
+
+    .btn.cancel:hover, .btn.confirm:hover {
+        filter: brightness(1.08);
+    }
+
+    <style>
+        /* 纸张烧焦遮罩动画：放缓移动速度，模拟火焰逐渐吞噬 */
+        @keyframes burn-paper {
+            0% {
+                -webkit-mask-position: 0 0;
+                mask-position: 0 0;
+    }
+
+                -webkit-mask-position: -120% 0;
+                mask-position: -120% 0;
+            }
+        }
+
+/* 底部逐行淡出动画（按从下往上顺序延迟） */
+        @keyframes burn-away-bottom {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+        /* 覆盖层：从底部向上增长，覆盖内容与边框，配合逐行淡出产生自下而上的吞噬效果 */
+        @keyframes burn-cover {
+            0% { height: 0%; }
+            100% { height: 100%; }
+        }
+
+        /* 组合应用燃烧效果的类 */
+        .burning {
+            position: relative;
+            overflow: hidden;
+            pointer-events: none; /* 燃烧期间防止重复点击 */
+        }
+
+        /* 子元素逐行淡出，总时长 1.5s，按从下往上延迟 */
+        .burning > * {
+            animation: burn-away-bottom 1.5s ease-in forwards;
+            transform-origin: bottom;
+            position: relative;
+            z-index: 1;
+        }
+
+        .burning > *:nth-last-child(1) { animation-delay: 0s; }
+        .burning > *:nth-last-child(2) { animation-delay: 0.1s; }
+        .burning > *:nth-last-child(3) { animation-delay: 0.2s; }
+        .burning > *:nth-last-child(4) { animation-delay: 0.3s; }
+        .burning > *:nth-last-child(5) { animation-delay: 0.4s; }
+        .burning > *:nth-last-child(6) { animation-delay: 0.5s; }
+        .burning > *:nth-last-child(7) { animation-delay: 0.6s; }
+        .burning > *:nth-last-child(8) { animation-delay: 0.7s; }
+        .burning > *:nth-last-child(9) { animation-delay: 0.8s; }
+        .burning > *:nth-last-child(10) { animation-delay: 0.9s; }
+        .burning > *:nth-last-child(11) { animation-delay: 1.0s; }
+        .burning > *:nth-last-child(12) { animation-delay: 1.1s; }
+
+        /* 覆盖层用于遮盖边框与未被子元素覆盖的区域 */
+        .burning::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 0%;
+            background: #000; /* 页面背景色 */
+            z-index: 2;
+            pointer-events: none;
+            animation: burn-cover 3s linear forwards;
+        }
+
+        .modal.fade-out-overlay {
+            animation: fadeOut 4s ease-in forwards;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        /* 开场页面样式 */
+        .intro-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            font-family: "Ma Shan Zheng", "KaiTi", "STKaiti", cursive;
+            transition: opacity 1s ease-out, visibility 1s ease-out;
+            cursor: pointer;
+        }
+
+        .intro-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .intro-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+        }
+
+        .intro-text {
+            font-size: 80px;
+            color: #fff;
+            letter-spacing: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .intro-subtitle {
+            font-size: 24px;
+            color: #888;
+            letter-spacing: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+        }
+
+        .intro-subchar {
+            opacity: 0;
+            filter: blur(2px);
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .intro-subchar.show {
+            animation: typeCharSubtitle 0.5s ease-out forwards;
+        }
+
+        @keyframes typeCharSubtitle {
+            0% {
+                opacity: 0;
+                filter: blur(2px);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+
+        .intro-hint {
+            color: #ffffff;
+            font-size: 24px;
+            margin-top: 20px;
+            opacity: 0.7;
+            animation: hintBlink 2s infinite;
+        }
+
+        @keyframes hintBlink {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 0.3; }
+        }
+
+        .intro-char {
+            opacity: 0;
+            filter: blur(2px);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .intro-char.show {
+            animation: typeCharSubtitle 0.5s ease-out forwards;
+        }
+
+        @keyframes typeChar {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+                filter: blur(2px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        .intro-cursor {
+            display: inline-block;
+            width: 4px;
+            height: 80px;
+            background: #fff;
+            position: absolute;
+            left: 0;
+            top: 0;
+            animation: cursorBlink 0.6s infinite;
+            transition: left 0.1s ease-out, top 0.1s ease-out, height 0.1s ease-out;
+        }
+
+        @keyframes cursorBlink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .intro-screen.hidden {
+            display: none;
+        }
+
+        /* 粒子消散画布覆盖层 */
+        .dissolve-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 3001;
+            pointer-events: none;
+        }
+
+        /* 开场剧情页面样式 */
+        .story-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            line-height: 1.5;
+            color: #ffffff;
+        }
+
+        .story-content p {
+            margin-bottom: 10px;
+            text-indent: 2em;
+        }
+
+        .story-content .unknown-letter {
+            font-style: italic;
+            color: #ff69b4;
+        }
+
+        /* 打字机效果：从左至右依次弹出 */
+        .story-char {
+            opacity: 0;
+            animation: typewriteIn 0.01s linear forwards;
+        }
+
+        @keyframes typewriteIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* 游戏开始页面淡入效果 */
+        .screen {
+            opacity: 0;
+            transition: opacity 0.3s ease-in;
+        }
+
+        .screen.visible {
+            opacity: 1;
+        }
+
+        /* 短信气泡样式 */
+        .sms-phone {
+            background: #f5f5f5;
+            border-radius: 20px;
+            padding: 16px 14px 20px 14px;
+            margin: 10px auto;
+            max-width: 480px;
+            box-shadow: 0 0 0 2px #e0e0e0, 0 0 0 5px #f5f5f5, 0 0 0 6px #d0d0d0, 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .sms-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sms-header {
+            text-align: center;
+            color: #555;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sms-contact {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0 10px 0;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 2px;
+        }
+
+        .sms-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #4a90d9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .sms-sender-name {
+            color: #222;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .sms-sender-sub {
+            color: #999;
+            font-size: 11px;
+        }
+
+        .sms-bubble {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px 14px 14px 14px;
+            padding: 12px 16px;
+            max-width: 88%;
+            align-self: flex-start;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .sms-bubble .sms-title {
+            color: #333;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sms-bubble .sms-text {
+            color: #444;
+            font-size: 13px;
+            line-height: 1.8;
+            margin-bottom: 3px;
+        }
+
+        .sms-bubble .sms-number {
+            color: #444;
+            font-size: 13px;
+            line-height: 1.8;
+            margin: 4px 0;
+            padding-left: 12px;
+            border-left: 2px solid rgba(100,160,100,0.2);
+        }
+
+        .sms-bubble .sms-hint {
+            color: #999;
+            font-size: 12px;
+            font-style: italic;
+            line-height: 1.6;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #eee;
+        }
+
+        .sms-time {
+            color: #bbb;
+            font-size: 11px;
+            text-align: right;
+            margin-top: 1px;
+            align-self: flex-start;
+            max-width: 88%;
+        }
+
+        /* 右下角消息提示 */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(10, 0, 15, 0.96);
+            border: 1.5px solid rgba(180, 120, 60, 0.7);
+            border-radius: 4px;
+            padding: 16px 28px;
+            color: #d4a860;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: "Courier New", monospace;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 12px rgba(180,120,60,0.2);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            pointer-events: auto;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        .toast-notification::before {
+            content: '\01F4E8';
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-notification.show:hover {
+            background: rgba(20, 5, 25, 0.96);
+            border-color: rgba(200, 150, 70, 1);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.7), 0 0 20px rgba(200,150,70,0.4);
+        }
+    </style>
+
+
+<!-- 模态对话框 -->
+<div id="modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-box">
+        <div class="modal-title">标题</div>
+        <div class="modal-body">内容</div>
+        <div class="modal-actions">
+            <button id="modalConfirm" class="btn confirm">确认</button>
+            <button id="modalCancel" class="btn cancel">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 烧焦效果遮罩 -->
+</head>
+<body>
+
+<!-- SVG 定义：用于生成带不规则边缘的遮罩图 -->
+<svg width="0" height="0" style="position:absolute">
+    <defs>
+        <filter id="burn-edge">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" seed="2" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="20" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+    </defs>
+</svg>
+
+<!-- 右下角弹出消息提示 -->
+<div id="toastNotification" class="toast-notification"></div>
+
+<!-- 开场页面 -->
+<div class="intro-screen" id="introScreen">
+    <div class="intro-content">
+        <span class="intro-cursor"></span>
+        <div class="intro-text">
+            <span class="intro-char" data-index="0">键</span>
+            <span class="intro-char" data-index="1">入</span>
+            <span class="intro-char" data-index="2">死</span>
+            <span class="intro-char" data-index="3">亡</span>
+        </div>
+        <div class="intro-subtitle">
+            <span class="intro-subchar" data-index="0">b</span>
+            <span class="intro-subchar" data-index="1">y</span>
+            <span class="intro-subchar" data-index="2"> </span>
+            <span class="intro-subchar" data-index="3">红</span>
+            <span class="intro-subchar" data-index="4">瞳</span>
+            <span class="intro-subchar" data-index="5">朱</span>
+            <span class="intro-subchar" data-index="6">雀</span>
+        </div>
+        <div class="intro-hint" id="introHint">点击屏幕开始</div>
+    </div>
+</div>
+
+<!-- 开场剧情页面 -->
+<div class="screen hidden" id="storyScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="storyInput" placeholder="输入线索...">
+    </div>
+    <div class="story-content">
+        <p>作为大学音乐社团的一份子，前几天听说社长再过几天将要准备策划一场团建。你当然乐见其成，毕竟能和志同道合的人一起玩音乐是一件幸事。</p>
+        <p>果不其然，今天在寝室午觉醒来后看到手机上就收到了社长发来的短信（<span class="unknown-letter">未知的来信</span>）。不过奇怪的是，虽然短信抬头是社长周明朗的名字，发信人却是社团里另一位成员陈逸舟。</p>
+        <p>"他好像以前就和社长认识，活动是他和社长一起组织的吗"。并未多想，到了当天你仍旧准备好了一切，踏上了这趟准备了很久的音乐之行。</p>
+    </div>
+</div>
+
+<!-- 第二页 -->
+<div class="screen hidden" id="infoScreen">
+    <div>游戏剧情纯属杜撰，如有雷同，纯属巧合</div>
+    <br>
+    
+    <div class="reset-btn" onclick="showResetDialog()">[ 回到原点 ]</div>
+    
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="infoInput" placeholder="输入线索...">
+    </div>
+
+        <div id="unlockMessage" class="unlock-message hidden">*已寻找到新线索*</div>
+        <div class="codes-container">
+        <div id="unlockCode1" class="code hidden"></div>
+        <div id="unlockCode2" class="code hidden"></div>
+        <div id="unlockCode3" class="code hidden"></div>
+        <div id="unlockCode4" class="code hidden"></div>
+        <div id="unlockCode5" class="code hidden"></div>
+        <div id="unlockCode6" class="code hidden"></div>
+        <div id="unlockCode7" class="code hidden"></div>
+        <div id="unlockCode8" class="code hidden"></div>
+        <div id="unlockCode9" class="code hidden"></div>
+        <div id="unlockCode10" class="code hidden"></div>
+        <div id="unlockCode11" class="code hidden"></div>
+        <div id="unlockCode12" class="code hidden"></div>
+        <div id="unlockCode13" class="code hidden"></div>
+        <div id="unlockCode14" class="code hidden"></div>
+    </div>
+    
+    <div class="pixel-book">
+        <div class="book-cover">
+            <div class="book-corner top-left"></div>
+            <div class="book-corner top-right"></div>
+            <div class="book-corner bottom-left"></div>
+            <div class="book-corner bottom-right"></div>
+        </div>
+        <div class="book-spine"></div>
+        <div class="book-pages">
+            <div class="page page-1"></div>
+            <div class="page page-2"></div>
+            <div class="page page-3"></div>
+            <div class="page page-4"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 重置确认对话框（风格化，替代原生 confirm） -->
+<div id="resetDialog" class="modal hidden" aria-hidden="true">
+    <div class="modal-box">
+        <div class="modal-title">回到原点</div>
+        <div class="modal-body">这将删除数据，离真相越来越远，想好了吗？</div>
+        <div class="modal-actions">
+            <button id="resetConfirm" class="btn confirm">确认</button>
+            <button id="resetCancel" class="btn cancel">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 第三页 -->
+<div class="screen hidden" id="thirdScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="thirdInput" placeholder="输入线索...">
+        <span class="page-name">1-BU-01-02-03-05-06-07-08-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">2023年夏天，晴，01，02，03，05，06，07，08，09在面包车（Bus）内。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker5">05</span>
+            <span class="content">我们今天要去的地方怎么还不说啊!社长也不知道什么时候才到，再坐车下去我都要快吐了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">快了，快了。大家体谅一下，明朗好不容易找到这么一个风景又好又便宜的民宿，等到了地方大家随便休息，现在再忍忍。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">01的表情似乎很不舒服。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">佳宁，我把窗户打开你透一下气。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">我来帮你拉吧，这些车的窗户拉起来还挺费劲的。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">闲着也是闲着，我们唱会歌吧，刚好我买了一块很贵的松香，还没用过。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">你们唱吧，我也有一点晕车不舒服。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">来呗，大家一起跟着唱歌。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">03拉着06说。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">有人晕车我们这么唱太吵了不太好吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker8">08</span>
+            <span class="content">没事没事，我们小声一点。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">再过二十分钟就到民宿入口（Entrznce）了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">面包车（Bus）继续朝着山里驶去。</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第四页（1-ZHOU-04-12） -->
+<div class="screen hidden" id="fourthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="fourthInput" placeholder="输入线索...">
+        <span class="page-name">1-ZHOU-04-12</span> <!-- ✅ 修改为1-ZHOU-04-12 -->
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="fourth-text">
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker4">04</span>
+            <span class="content">04似乎在打电话。</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker4">04</span>
+            <span class="content">我说过了，你必须为你的行为付出代价!你要是不帮我那就等着和那些一样的下场吧!</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">电话那头传来哭泣的声音，对方说话语无伦次。</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker4">04</span>
+            <span class="content">唉，就这一次，成功之后我会把一切都揽在我身上，和你就没有什么关系了。你要做的就是按照我们之前的计划把他们组织好带到这里就可以了，至于他们会怎么死去你就不管。</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">门外传来扫把倒下的声音。</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker4">04</span>
+            <span class="content">他妈的，谁在那!这个时候怎么还会有人。</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker12">12</span>
+            <span class="content">我......我只是来打扫卫生的,什么都没听见啊。</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">12颤抖着向楼下大门跑去。</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker4">04</span>
+            <span class="content">停下来!那里有.....</span>
+        </div>
+        <div class="fourth-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">12摔下楼梯。</span>
+        </div>
+    </div>
+</div>
+
+
+<!-- 第五页 -->
+<div class="screen hidden" id="fifthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="fifthInput" placeholder="输入线索...">
+        <span class="page-name">2-EN-01-02-03-05-06-07-08-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+    <div class="fifth-text">
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">面包车停在了民宿入口（Entrance）</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">咳咳......大家赶路辛苦了，房间在之前已经给大家分配好了，一共有两层，门上有门牌号，我们先进去放东西，要休息的也可以这会休息。</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">欣欣，我们先去房间（Shen）放东西吧。</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">有男朋友就是好，还能有人帮着忙提东西。喂，能不能帮我拿上去。</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">07手指向06，06似乎没反应</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">你们其他人呢？我去客厅休息会，其他人先去房间放东西还是现在去逛一逛。</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker6">06</span>
+            <span class="content">我们两个不急，先去客厅（Living room）休息一会。</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">那我们两个先去房间（SU）收拾，许佳宁刚刚晕车太严重了，估计要躺一会才缓得过来。你们照看一下</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">那就先这样吧，大家休息一会。按照之前的安排刘思琪和林宇两个去厨房做饭，其他人有空地来帮忙。解散。</span>
+        </div>
+        <div class="fifth-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">02、03、07、08、09离开了</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第六页：未知的来信 -->
+<div class="screen hidden" id="sixthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="sixthInput" placeholder="输入线索...">
+        <span class="page-name">未知的来信</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="sms-phone">
+        <div class="sms-container">
+            <div class="sms-header">📶 中国移动 &nbsp; 4G &nbsp; ▂▂▂ &nbsp; 14:32</div>
+            <div class="sms-contact">
+                <div class="sms-avatar">陈</div>
+                <div>
+                    <div class="sms-sender-name">陈逸舟</div>
+                </div>
+            </div>
+
+            <div class="sms-bubble">
+                <div class="sms-title">【社团通知】</div>
+                <div class="sms-text">各位社员们：</div>
+                <div class="sms-text">现就后天的团建活动做一下提醒：</div>
+                <div class="sms-number">1、请各位带上自己的乐器（钢琴除外）。</div>
+                <div class="sms-number">2、请对社团内其他同学保密，不然加入的人太多不方便管理。</div>
+                <div class="sms-number">3、这次预计三天两晚，请各位安排好其他事情。</div>
+                <div class="sms-text" style="margin-top: 4px;">期待与大家的首次见面。</div>
+                <div class="sms-text" style="text-align: right; color: #999; margin-top: 8px;">—— 周明朗</div>
+            </div>
+            <div class="sms-time">14:32</div>
+        </div>
+    </div>
+</div>
+
+<!-- 第七页：未知的来信2 -->
+<div class="screen hidden" id="seventhScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="seventhInput" placeholder="输入线索...">
+        <span class="page-name">未知的来信2</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="sms-phone">
+        <div class="sms-container">
+            <div class="sms-header">📶 中国移动 &nbsp; 4G &nbsp; ▂▂▂ &nbsp; 15:32</div>
+            <div class="sms-contact">
+                <div class="sms-avatar">陈</div>
+                <div>
+                    <div class="sms-sender-name">陈逸舟</div>
+                </div>
+            </div>
+
+            <div class="sms-bubble">
+                <div class="sms-text">本次团建共九人，集体坐面包车前往（Bus），先由陈逸舟带领大家前往目的地，社长先去采购一些物资，稍晚一点会和大家回合。</div>
+                <div class="sms-hint">（尝试推理线索输入，如顺序+场景+人物，如：1-BU-01-02-03-05-06-07-08-09）</div>
+                <div class="sms-text" style="text-align: right; color: #999; margin-top: 8px;">—— 周明朗</div>
+            </div>
+            <div class="sms-time">15:32</div>
+        </div>
+    </div>
+</div>
+
+<!-- 第八页：3-LI-01-05-06 -->
+<div class="screen hidden" id="eighthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="eighthInput" placeholder="输入线索...">
+        <span class="page-name">3-LI-01-05-06</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker6">06</span>
+            <span class="content">话说你们也是收到社长短信才来的吗，为什么发信人是你？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">第二条短信说了，他比较忙要晚一会才来，所以一些工作就交由我来做了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker5">05</span>
+            <span class="content">要不是苏雨桐硬来着我陪她，谁会跑这么远来玩啊，学校又不是没有社团场地。话说她人呢？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">和男朋友去房间放行李了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker5">05</span>
+            <span class="content">唔......晕车还没缓过来，我先在这躺一会，有事再叫我。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">等一会刘思琪和林宇就要去厨房（Kitchen）做饭了，我们坐一会也去帮忙吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker6">06</span>
+            <span class="content">嗯，等会你先去，我去叫我哥沈泽近（Shen）和赵欣怡帮忙。</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第九页：3-SHEN-03-08 -->
+<div class="screen hidden" id="ninthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="ninthInput" placeholder="输入线索...">
+        <span class="page-name">3-SHEN-03-08</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">你有没有感觉很怪。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker8">08</span>
+            <span class="content">嗯？什么方面。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">这个地方也太偏了吧，周围就我们一户人家，总感觉毛骨悚然的。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker8">08</span>
+            <span class="content">或许周明朗就喜欢这种环境？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker8">08</span>
+            <span class="content">不做亏心事不怕鬼敲门。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">我们真的敢说没做吗？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker8">08</span>
+            <span class="content">先休息一会吧，这次出来就好好玩，其他的事情再说吧。</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第十页：3-SU-02-09 -->
+<div class="screen hidden" id="tenthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="tenthInput" placeholder="输入线索...">
+        <span class="page-name">3-SU-02-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">床好大好舒服啊，能不能别老看手机，你也快来躺着。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">不了，东西放下后我要出去一下。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">难得的独处时间你还要出去吗，能不能不走？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">亲爱的，我只是有点饿了。离吃饭还有一会时间，我去找一找有没有吃的填一下肚子，很快就回来。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">烦人。好吧，记得早点回来给我带一点吃的。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">09离开了。</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第十一页：4-KI-01-07-09 -->
+<div class="screen hidden" id="eleventhScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="eleventhInput" placeholder="输入线索...">
+        <span class="page-name">4-KI-01-07-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">厨房门被推开</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">是来厨房帮忙的吗，我觉得你好像很眼熟，我们是不是以前见过？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">哈哈，这种搭讪技巧过于老套了。除了几个情侣之外，其他所有人应该都没见过面才对，大家都是才进入社团的人。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">可是我真的觉得你很眼熟，你是不是还有个妹妹。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">苏雨桐都知道的，我是独子，没有什么妹妹。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">谁是苏雨桐，车上坐你旁边那个女生吗？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">厨房门被打开了，07和09对话结束。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">你们两个已经在这里了啊，需要我帮什么忙吗？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">9</span>
+            <span class="content">你自己看着来吧，怎么只有你过来了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">许佳宁一直在客厅躺着，沈泽远去叫他哥和赵欣怡（Shen）一起来厨房帮忙了，过一会应该也过来了吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">过一会我就先离开了，雨桐还在等我给她带一些吃的。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">09离开了</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第十二页：5-KI-01-03-06-07-08-09 -->
+<div class="screen hidden" id="twelfthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="twelfthInput" placeholder="输入线索...">
+        <span class="page-name">5-KI-01-03-06-07-08-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+    
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">03、06、08来到厨房</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">来的正好，快来帮忙把菜切了，我们快要忙不过来了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker8">08</span>
+            <span class="content">自我介绍一下，我叫赵欣怡，我来帮你。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker6">06</span>
+            <span class="content">我叫沈泽远，这是我哥。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">你是组织者陈逸舟是吧，我们到这个民宿也有这么久了，为什么社长到现在还是一点消息都没有，会不会出什么事了？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">说实话，自从来到这里后我也没收到过他的消息了，再等等。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">我看二楼走廊最里面还剩一个房间（Zhou），是不是留给社长的？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">是的。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">那我和她去看看房间里有没有人吧，说不定人早就来了在里面躺着休息。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">等饭菜上好了再去吧，如果他在的话直接叫他下来吃饭。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">也行，这里厨房也快忙完了，等会就都在餐厅（Dining room）集合吧。我去叫所有人下来。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">07、08离开了</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第十三页：6-DI-01-02-03-05-06-09 -->
+<div class="screen hidden" id="thirteenthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="thirteenthInput" placeholder="输入线索...">
+        <span class="page-name">6-DI-01-02-03-05-06-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+    
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">除了另外两个去二楼了，其他人应该都到齐了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">刚刚林宇给我带的都不够吃，还好有这么一顿大餐。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">大家都挺自来熟的，那就好了，大家都有共同的爱好气氛不会太僵硬。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">桌子发出剧烈的撞击声</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">大家真的没觉得不对劲吗！我想问问大家都是怎么来的，我后悔了，现在我就要马上离开。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">楼上发出咚咚的声音</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker5">05</span>
+            <span class="content">不是社长发的消息请我们来的吗？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">是也不是，虽然消息的抬头是周明朗，但是发信人是陈逸舟。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">没错，社长自始至终都没有露过面，要不是大家一个学校我都要怀疑是什么诈骗消息了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker6">06</span>
+            <span class="content">我完全是因为我哥来了这里我才来的，一个人在学校待着没意思。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">来都来了，你要走总要给个理由吧，大家都在这里你一个人离开就太扫兴了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">03离开椅子被01拉住</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">我错了，我真的错了。我还不想死啊。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker6">06</span>
+            <span class="content">哥，冷静一点！至少也等到你女朋友下来一起走吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">对，对，对。还有欣怡，她现在在哪？我要去找她。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">楼上房间发出尖叫</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">发生什么事了，还有两个人在楼上。先别管这的事了，上去看一下。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">所有人离开了。</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第十四页：7-ZHOU-01-02-03-05-06-07-08-09 -->
+<div class="screen hidden" id="fourteenthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="fourteenthInput" placeholder="输入线索...">
+        <span class="page-name">7-ZHOU-01-02-03-05-06-07-08-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+    
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">01、02、03、05、06、09来到周明朗（Zhou）房间</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">发生什么了，思琪你没事吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">你们都来了，我们刚来这里的时候敲门没反应就想着直接进去看一看，结果发现了这些。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker8">08</span>
+            <span class="content">地上......地上有具无头尸体。这是社长的房间吧，不知道是不是社长。唔，不行了，我要吐了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">房间里混合着灰尘和血腥味，尸体的头颅不见了，整具躯体呈现出不自然的歪曲。右腿的胫骨刺穿了裤子露在外面。颈部的断面像一口参差不齐的黑尽吞噬着众人的恐惧，皮肉外翻，仅剩的骨头像折断的树枝一样突兀地刺出来。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">让我看看。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">对了，你是唯一见过社长的人，你来看看这具尸体是——</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">01似乎想到了什么惊呼一声打断了众人的讲话声和思绪。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">是他，真的是他。虽然头不见了，但是体型和衣服都和我几天前看到的社长一模一样。怎么会这样。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">我看着也有点不舒服。他是社长的话那现在怎么办，我们这些人现在总的跑吧，说不定杀人犯还在这附近。你不是组织者吗，你快想办法啊！</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">01仍在惊吓中没有听到02的提醒。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker5">05</span>
+            <span class="content">大家冷静一下，我刚刚看了手机并没有信号，但是在我们吃饭之前却是正常的。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker6">06</span>
+            <span class="content">周围有没有交通工具之类的可以载几个人去找最近的人家报警。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">不可能的，我们来的时候大家应该都发现了这周围没有什么人，最近的估计也要有个十几二十公里才能找到。而来接我们回去的面包车也要两天后才会来。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker1">01</span>
+            <span class="content">我不能再看下去了，我先下楼缓一缓，你们接着讨论吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker8">08</span>
+            <span class="content">我也是，我想先回房间休息，我一个人可以的，沈泽近你就先和他们在一起吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">我们等一会一起离开这里吧。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">01、08离开了</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">大家先冷静一下，这里房间太小了，回客厅我们再商量。</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第十五页：8-LI-02-03-05-06-07-09 -->
+<div class="screen hidden" id="fifteenthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="fifteenthInput" placeholder="输入线索...">
+        <span class="page-name">8-LI-02-03-05-06-07-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+    
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">前不久你们才害死了一个人忘了吗。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker5">05</span>
+            <span class="content">害死人？你在说什么。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">沈泽近我警告你，不准说出来！</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">还不说吗，现在都已经死人了，我必须要讲出来。你们上个月欺负一个其他班的女生，别人因为没有音乐天赋就被你们嘲笑，甚至往琴盒里塞垃圾。还敢说你们没有害人吗？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker7">07</span>
+            <span class="content">我承认当时是有这么一回事，可这和害死人有没有什么关系，最多算是同学之间的小矛盾。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">她最后在自己家里跳楼死了。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker6">06</span>
+            <span class="content">哥你冷静一点，我也是才知道这件事，但说到底我们不是直接害死她的人，就算我们有错也不至于偿命。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker3">03</span>
+            <span class="content">不，这一定是报应，我要去找刘思琪带她离开，弟弟你也和我们一起吧，这个鬼地方是绝对不能再待下去了！</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">够了，要去你们去，我哪儿也不去。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">对了，我之前瞟到她去了天台（Rooftop），你们一起去吧，我也待在这里。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">03、05、06、07离开了</span>
+        </div>
+    </div>
+</div>
+
+<!-- 第十六页：9-LI-02-09 -->
+<div class="screen hidden" id="sixteenthScreen">
+    <div class="input-line">
+        <span>&gt; </span>
+        <input id="sixteenthInput" placeholder="输入线索...">
+        <span class="page-name">9-LI-02-09</span>
+        <span class="return-btn" onclick="showScreen('info'); checkUnlocks();">| 返回</span>
+    </div>
+
+    <div class="unlock-message hidden">*已寻找到新线索*</div>
+
+    <div class="third-text">
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">妈的妈的，怎么到这来摊上这种事，真晦气。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">好了好了，我们现在当务之急是和大家一起离开这个地方。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">那亲爱的，你知道这些事后还会爱我吗？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">我不在乎你对其他人怎么样，我知道你是真心爱我的。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">楼上传来推搡、撞击的声音。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">我还是好担心，你说杀人犯会不会就在我们中间？</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker9">09</span>
+            <span class="content">应该不会吧，大家都是同学，要是真有人想提那个自杀的女生报仇也应该报警，私人报复也是犯法的。放心，没事的。其实我也很害怕死，我也怕我根本走不出这个地方，但即使到了生命最后时刻我也一定会和你在一起。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">巨大的砰声传来。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker2">02</span>
+            <span class="content">就你嘴甜。让我在你怀里靠一会儿吧，关键时刻还是你最冷静。</span>
+        </div>
+        <div class="third-line">
+            <span class="marker" contenteditable="true" data-key="marker13">@</span>
+            <span class="content">楼上传来了更撕心裂肺的尖叫声。</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// ✅ 标记映射
+const markerMap = {
+    marker1: "01", marker2: "02", marker3: "03", marker4: "04",
+    marker5: "05", marker6: "06", marker7: "07", marker8: "08",
+    marker9: "09", marker10: "10", marker11: "11", marker12: "12",
+    marker13: "@", marker14: "14", 
+};
+
+let screens, inputs, unlockCode1, unlockCode2, unlockCode3, unlockCode4, unlockCode5, unlockCode6, unlockCode7, unlockCode8, unlockCode9, unlockCode10, unlockCode11, unlockCode12, unlockCode13, unlockCode14;
+let bookContainer = null;
+
+const CODE1 = "未知的来信";
+const CODE2 = "未知的来信2";
+const CODE3 = "1-BU-01-02-03-05-06-07-08-09";
+const CODE4 = "1-ZHOU-04-12";
+const CODE5 = "2-EN-01-02-03-05-06-07-08-09";
+const CODE6 = "3-LI-01-05-06";
+const CODE7 = "3-SHEN-03-08";
+const CODE8 = "3-SU-02-09";
+const CODE9 = "4-KI-01-07-09";
+const CODE10 = "5-KI-01-03-06-07-08-09";
+const CODE11 = "6-DI-01-02-03-05-06-09";
+const CODE12 = "7-ZHOU-01-02-03-05-06-07-08-09";
+const CODE13 = "8-LI-02-03-05-06-07-09";
+const CODE14 = "9-LI-02-09";
+
+function init() {
+    screens = {
+        story: document.getElementById("storyScreen"),
+        info: document.getElementById("infoScreen"),
+        third: document.getElementById("thirdScreen"),
+        fourth: document.getElementById("fourthScreen"),
+        fifth: document.getElementById("fifthScreen"),
+        sixth: document.getElementById("sixthScreen"),
+        seventh: document.getElementById("seventhScreen"),
+        eighth: document.getElementById("eighthScreen"),
+        ninth: document.getElementById("ninthScreen"),
+        tenth: document.getElementById("tenthScreen"),
+        eleventh: document.getElementById("eleventhScreen"),
+        twelfth: document.getElementById("twelfthScreen"),
+        thirteenth: document.getElementById("thirteenthScreen"),
+        fourteenth: document.getElementById("fourteenthScreen"),
+        fifteenth: document.getElementById("fifteenthScreen"),
+        sixteenth: document.getElementById("sixteenthScreen")
+    };
+
+    inputs = {
+        story: document.getElementById("storyInput"),
+        info: document.getElementById("infoInput"),
+        third: document.getElementById("thirdInput"),
+        fourth: document.getElementById("fourthInput"),
+        fifth: document.getElementById("fifthInput"),
+        sixth: document.getElementById("sixthInput"),
+        seventh: document.getElementById("seventhInput"),
+        eighth: document.getElementById("eighthInput"),
+        ninth: document.getElementById("ninthInput"),
+        tenth: document.getElementById("tenthInput"),
+        eleventh: document.getElementById("eleventhInput"),
+        twelfth: document.getElementById("twelfthInput"),
+        thirteenth: document.getElementById("thirteenthInput"),
+        fourteenth: document.getElementById("fourteenthInput"),
+        fifteenth: document.getElementById("fifteenthInput"),
+        sixteenth: document.getElementById("sixteenthInput")
+    };
+
+    unlockCode1 = document.getElementById("unlockCode1");
+    unlockCode2 = document.getElementById("unlockCode2");
+    unlockCode3 = document.getElementById("unlockCode3");
+    unlockCode4 = document.getElementById("unlockCode4");
+    unlockCode5 = document.getElementById("unlockCode5");
+    unlockCode6 = document.getElementById("unlockCode6");
+    unlockCode7 = document.getElementById("unlockCode7");
+    unlockCode8 = document.getElementById("unlockCode8");
+    unlockCode9 = document.getElementById("unlockCode9");
+    unlockCode10 = document.getElementById("unlockCode10");
+    unlockCode11 = document.getElementById("unlockCode11");
+    unlockCode12 = document.getElementById("unlockCode12");
+    unlockCode13 = document.getElementById("unlockCode13");
+    unlockCode14 = document.getElementById("unlockCode14");
+    bookContainer = document.querySelector('.pixel-book');
+    initMarkers();
+    initInputs();
+
+    // 绑定重置对话框按钮
+    const resetConfirm = document.getElementById('resetConfirm');
+    const resetCancel = document.getElementById('resetCancel');
+    const resetDialog = document.getElementById('resetDialog');
+    if (resetConfirm) resetConfirm.addEventListener('click', performReset);
+    if (resetCancel) resetCancel.addEventListener('click', hideResetDialog);
+    // 按下 Esc 关闭对话框
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && resetDialog && !resetDialog.classList.contains('hidden')) {
+            hideResetDialog();
+        }
+    });
+}
+
+// 显示/隐藏风格化重置对话框并执行重置
+function showResetDialog() {
+    const dlg = document.getElementById('resetDialog');
+    if (!dlg) return;
+    // 先移除 hidden，以便元素参与渲染，再用 requestAnimationFrame 添加 show 触发过渡
+    dlg.classList.remove('hidden');
+    dlg.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => dlg.classList.add('show'));
+    
+    // 添加点击外部区域触发振动效果
+    setupDialogShakeEffect(dlg);
+}
+
+// 设置对话框外部点击振动效果
+function setupDialogShakeEffect(dialog) {
+    const modalBox = dialog.querySelector('.modal-box');
+    if (!modalBox) return;
+    
+    // 移除之前的事件监听器（避免重复绑定）
+    dialog.removeEventListener('click', handleDialogClick);
+    
+    // 添加点击事件监听器
+    dialog.addEventListener('click', handleDialogClick);
+    
+    function handleDialogClick(event) {
+        // 检查点击是否发生在对话框外部（即点击了遮罩层）
+        if (event.target === dialog) {
+            triggerShakeEffect(modalBox);
+        }
+    }
+}
+
+// 触发振动效果
+function triggerShakeEffect(modalBox) {
+    // 如果已经在振动，则不重复触发
+    if (modalBox.classList.contains('shaking')) return;
+    
+    // 添加振动类
+    modalBox.classList.add('shaking');
+    
+    // 播放音效（可选，增强恐怖效果）
+    playHorrorSound();
+    
+    // 0.8秒后移除振动效果
+    setTimeout(() => {
+        modalBox.classList.remove('shaking');
+    }, 800);
+}
+
+// 播放恐怖音效（使用Web Audio API生成简单的恐怖音效）
+function playHorrorSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // 设置低频锯齿波，营造恐怖氛围
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(80, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(40, audioContext.currentTime + 0.3);
+        
+        // 设置音量包络
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+        // 音频播放失败时静默处理
+        console.log('音频播放失败:', error);
+    }
+}
+
+// 全局打字机音效对象
+let typewriterAudio = null;
+let animationStarted = false; // 动画是否已开始
+let audioContext = null; // 音频上下文
+
+// 初始化音频上下文
+function initAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+}
+
+// 播放老式打字机音效
+function playTypewriterSound() {
+    try {
+        initAudioContext(); // 确保音频上下文已初始化
+        
+        // 如果已有音频对象，先停止播放
+        if (typewriterAudio) {
+            typewriterAudio.pause();
+            typewriterAudio.currentTime = 0;
+        }
+        
+        // 创建新的音频对象
+        typewriterAudio = new Audio('music/typewrite.mp3');
+        typewriterAudio.volume = 1.0;//开场动画音量
+        typewriterAudio.currentTime = 0; // 重置播放位置
+        typewriterAudio.preload = 'auto'; // 预加载音频
+        
+        const playPromise = typewriterAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('打字机音效播放成功');
+            }).catch(error => {
+                console.log('打字机音效播放失败:', error);
+            });
+        }
+    } catch (error) {
+        console.log('打字机音效播放失败:', error);
+    }
+}
+
+// 淡出打字机音效
+function fadeOutTypewriterSound() {
+    if (!typewriterAudio) return;
+    
+    try {
+        const fadeDuration = 1000; // 1秒淡出
+        const fadeSteps = 20; // 分20步淡出
+        const fadeInterval = fadeDuration / fadeSteps;
+        const volumeStep = typewriterAudio.volume / fadeSteps;
+        
+        let currentStep = 0;
+        const fadeIntervalId = setInterval(() => {
+            currentStep++;
+            typewriterAudio.volume = Math.max(0, typewriterAudio.volume - volumeStep);
+            
+            if (currentStep >= fadeSteps) {
+                clearInterval(fadeIntervalId);
+                typewriterAudio.pause();
+                typewriterAudio.currentTime = 0;
+            }
+        }, fadeInterval);
+    } catch (error) {
+        console.log('音效淡出失败:', error);
+    }
+}
+
+// 播放危险警告音效（线索不存在时触发）
+function playDangerSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 创建主振荡器（低频恐怖音）
+        const mainOsc = audioContext.createOscillator();
+        const mainGain = audioContext.createGain();
+        
+        // 创建高频刺耳音
+        const highOsc = audioContext.createOscillator();
+        const highGain = audioContext.createGain();
+        
+        // 创建噪音（增强恐怖感）
+        const bufferSize = audioContext.sampleRate * 0.5;
+        const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const noiseData = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            noiseData[i] = Math.random() * 2 - 1;
+        }
+        const noiseSource = audioContext.createBufferSource();
+        noiseSource.buffer = noiseBuffer;
+        const noiseGain = audioContext.createGain();
+        const noiseFilter = audioContext.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.setValueAtTime(500, audioContext.currentTime);
+        
+        // 连接音频节点
+        mainOsc.connect(mainGain);
+        mainGain.connect(audioContext.destination);
+        
+        highOsc.connect(highGain);
+        highGain.connect(audioContext.destination);
+        
+        noiseSource.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(audioContext.destination);
+        
+        // 设置主振荡器参数（低频下降）
+        mainOsc.type = 'sawtooth';
+        mainOsc.frequency.setValueAtTime(120, audioContext.currentTime);
+        mainOsc.frequency.exponentialRampToValueAtTime(30, audioContext.currentTime + 0.6);
+        mainGain.gain.setValueAtTime(0.25, audioContext.currentTime);
+        mainGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+        
+        // 设置高频振荡器参数（刺耳上升）
+        highOsc.type = 'square';
+        highOsc.frequency.setValueAtTime(800, audioContext.currentTime);
+        highOsc.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.4);
+        highGain.gain.setValueAtTime(0.08, audioContext.currentTime);
+        highGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        
+        // 设置噪音参数
+        noiseGain.gain.setValueAtTime(0.04, audioContext.currentTime);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        // 启动所有音频源
+        mainOsc.start(audioContext.currentTime);
+        mainOsc.stop(audioContext.currentTime + 0.6);
+        
+        highOsc.start(audioContext.currentTime);
+        highOsc.stop(audioContext.currentTime + 0.4);
+        
+        noiseSource.start(audioContext.currentTime);
+        noiseSource.stop(audioContext.currentTime + 0.3);
+        
+    } catch (error) {
+        // 音频播放失败时静默处理
+        console.log('危险音效播放失败:', error);
+    }
+}
+
+// 播放消息提示音效
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 创建振荡器
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // 设置正弦波，营造诡异的通知音
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.15);
+        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.3);
+        
+        // 设置音量包络
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.15, audioContext.currentTime + 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 0.3);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+        console.log('通知音效播放失败:', error);
+    }
+}
+
+function playAudioFromBase64String(base64Text) {
+    const trimmed = base64Text.trim();
+    if (!trimmed) return Promise.reject(new Error('Base64 音频内容为空'));
+    let src;
+    if (trimmed.startsWith('data:audio')) {
+        src = trimmed;
+    } else {
+        const prefix = trimmed.slice(0, 4);
+        const mimeType = prefix === 'UklG' ? 'audio/wav' : prefix === 'SUQz' ? 'audio/mpeg' : 'audio/mpeg';
+        src = `data:${mimeType};base64,${trimmed}`;
+    }
+    if (jueBieShuAudio) {
+        jueBieShuAudio.pause();
+        jueBieShuAudio = null;
+    }
+    jueBieShuAudio = new Audio(src);
+    jueBieShuAudio.volume = 1.0;
+    return jueBieShuAudio.play().catch(error => {
+        console.log('诀别书音频播放失败:', error);
+    });
+}
+
+
+
+// 播放翻书音效（正确线索输入时触发）
+        function playPageTurnSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audio = new Audio('music/book1.mp3');
+                const source = audioContext.createMediaElementSource(audio);
+                const gainNode = audioContext.createGain();
+                
+                source.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                
+                audio.play().catch(error => {
+                    console.log('翻书音效播放失败:', error);
+                });
+                
+                audio.onloadedmetadata = () => {
+                    const duration = audio.duration;
+                    const fadeOutStartTime = duration - 0.5;
+                    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + fadeOutStartTime);
+                    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
+                };
+            } catch (error) {
+                console.log('翻书音效播放失败:', error);
+            }
+        }
+
+function hideResetDialog() {
+    const dlg = document.getElementById('resetDialog');
+    if (!dlg) return;
+    // 移除 show 启动淡出，淡出结束后再添加 hidden
+    dlg.classList.remove('show');
+    dlg.setAttribute('aria-hidden', 'true');
+    // 与 CSS 过渡时长保持同步（520ms），稍作延迟后隐藏
+    setTimeout(() => dlg.classList.add('hidden'), 540);
+}
+
+function performReset() {
+    const dlg = document.getElementById('resetDialog');
+    const box = dlg ? dlg.querySelector('.modal-box') : null;
+    const infoScreen = document.getElementById('infoScreen'); // 获取第二页元素
+    if (!dlg || !box || !infoScreen) return;
+    
+    // 先隐藏所有线索代码，避免燃烧时残留
+    if (unlockCode1) unlockCode1.classList.add('hidden');
+    if (unlockCode2) unlockCode2.classList.add('hidden');
+    if (unlockCode3) unlockCode3.classList.add('hidden');
+    if (unlockCode4) unlockCode4.classList.add('hidden');
+    if (unlockCode5) unlockCode5.classList.add('hidden');
+    if (unlockCode6) unlockCode6.classList.add('hidden');
+    if (unlockCode7) unlockCode7.classList.add('hidden');
+    if (unlockCode8) unlockCode8.classList.add('hidden');
+    if (unlockCode9) unlockCode9.classList.add('hidden');
+    if (unlockCode10) unlockCode10.classList.add('hidden');
+    if (unlockCode11) unlockCode11.classList.add('hidden');
+    if (unlockCode12) unlockCode12.classList.add('hidden');
+    if (unlockCode13) unlockCode13.classList.add('hidden');
+    if (unlockCode14) unlockCode14.classList.add('hidden');
+
+    // 核心修复：先移除 hidden 类，否则 display:none 会导致动画无法播放，元素瞬间消失
+    dlg.classList.remove('hidden');
+    infoScreen.classList.remove('hidden');
+
+    // 添加燃烧动画类（对话框和第二页同时燃烧）
+    box.classList.add('burning');
+    infoScreen.classList.add('burning');
+    dlg.classList.add('fade-out-overlay');
+
+    // 4 秒后完成重置逻辑，确保逐行消失效果完整播放
+    setTimeout(() => {
+        try {
+            // 清除所有localStorage数据
+            localStorage.clear();
+            
+            // 重置所有标记
+            const markers = document.querySelectorAll('.marker');
+            markers.forEach(marker => {
+                marker.textContent = markerMap[marker.dataset.key] || "@";
+            });
+            
+            // 重置所有线索代码
+            if (unlockCode1) { unlockCode1.classList.add("hidden"); unlockCode1.textContent = ""; }
+            if (unlockCode2) { unlockCode2.classList.add("hidden"); unlockCode2.textContent = ""; }
+            if (unlockCode3) { unlockCode3.classList.add("hidden"); unlockCode3.textContent = ""; }
+            if (unlockCode4) { unlockCode4.classList.add("hidden"); unlockCode4.textContent = ""; }
+            if (unlockCode5) { unlockCode5.classList.add("hidden"); unlockCode5.textContent = ""; }
+            if (unlockCode6) { unlockCode6.classList.add("hidden"); unlockCode6.textContent = ""; }
+            if (unlockCode7) { unlockCode7.classList.add("hidden"); unlockCode7.textContent = ""; }
+            if (unlockCode8) { unlockCode8.classList.add("hidden"); unlockCode8.textContent = ""; }
+            if (unlockCode9) { unlockCode9.classList.add("hidden"); unlockCode9.textContent = ""; }
+            if (unlockCode10) { unlockCode10.classList.add("hidden"); unlockCode10.textContent = ""; }
+            if (unlockCode11) { unlockCode11.classList.add("hidden"); unlockCode11.textContent = ""; }
+            if (unlockCode12) { unlockCode12.classList.add("hidden"); unlockCode12.textContent = ""; }
+            if (unlockCode13) { unlockCode13.classList.add("hidden"); unlockCode13.textContent = ""; }
+            if (unlockCode14) { unlockCode14.classList.add("hidden"); unlockCode14.textContent = ""; }
+
+            // 清空所有输入框
+            Object.values(inputs).forEach(input => input && (input.value = ""));
+
+            dlg.classList.add('hidden');
+            dlg.classList.remove('show', 'fade-out-overlay');
+            box.classList.remove('burning');
+            infoScreen.classList.remove('burning');
+            infoScreen.classList.add('hidden');
+
+            void box.offsetWidth;
+            void infoScreen.offsetWidth;
+
+            // 重置开场动画状态
+            animationStarted = false;
+
+            // 显示开场页面
+            const introScreen = document.getElementById('introScreen');
+            const introContent = document.querySelector('.intro-content');
+            if (introScreen) {
+                introScreen.classList.remove('hidden');
+                introScreen.classList.remove('fade-out');
+                introScreen.style.background = '';
+                introScreen.style.transition = '';
+                if (introContent) {
+                    introContent.style.opacity = '';
+                    introContent.style.filter = '';
+                    introContent.style.transition = '';
+                }
+                const cursor = document.querySelector('.intro-cursor');
+                if (cursor) cursor.style.opacity = '';
+
+                // 清除残留的消散画布
+                document.querySelectorAll('.dissolve-canvas').forEach(c => c.remove());
+
+                // 恢复剧情页面原始HTML并清除动画标记
+                const storyContent = document.querySelector('.story-content');
+                if (storyContent && storyContent.dataset.originalHtml) {
+                    storyContent.innerHTML = storyContent.dataset.originalHtml;
+                    delete storyContent.dataset.animated;
+                    delete storyContent.dataset.originalHtml;
+                }
+                
+                // 重置所有字符显示状态
+                const chars = document.querySelectorAll('.intro-char');
+                const subchars = document.querySelectorAll('.intro-subchar');
+                chars.forEach(char => char.classList.remove('show'));
+                subchars.forEach(char => char.classList.remove('show'));
+                
+                // 显示提示文字
+                const hint = document.getElementById('introHint');
+                if (hint) hint.style.display = 'block';
+                
+                // 重新初始化开场动画
+                initIntroAnimation();
+            }
+            
+            // 隐藏所有其他页面
+            Object.values(screens).forEach(screen => {
+                if (screen && screen.id !== 'introScreen') {
+                    screen.classList.add('hidden');
+                    screen.classList.remove('visible');
+                }
+            });
+            
+            alert("一切将重新开始。");
+        } catch (error) {
+            console.error("重置失败:", error);
+            alert("重置出错，请刷新重试。");
+        }
+    }, 4200);
+}
+
+
+function initMarkers() {
+    const markers = document.querySelectorAll('.marker');
+    markers.forEach(marker => {
+        const key = marker.dataset.key;
+        const saved = localStorage.getItem(key);
+        marker.textContent = saved && saved.trim() ? saved : markerMap[key] || "@";
+
+        marker.addEventListener('click', () => {
+            if (marker.textContent === markerMap[key]) {
+                marker.textContent = "";
+                const range = document.createRange();
+                range.selectNodeContents(marker);
+                range.collapse(false);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        });
+
+        marker.addEventListener('input', () => {
+            const current = marker.textContent;
+            if (current && current.trim()) {
+                localStorage.setItem(key, current);
+                syncMarkers(key, current);  // 新增：同步所有标记
+            } else {
+                localStorage.removeItem(key);
+                syncMarkers(key, markerMap[key] || "@");  // 新增：同步所有标记
+            }
+        });
+
+        marker.addEventListener('blur', () => {
+            if (!marker.textContent.trim()) {
+                const defaultValue = markerMap[key] || "@";
+                marker.textContent = defaultValue;
+                localStorage.setItem(key, defaultValue);
+                syncMarkers(key, defaultValue);  // 新增：同步所有标记
+            }
+        });
+
+        marker.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); marker.blur(); }
+        });
+    });
+}
+
+// 新增函数：同步所有相同标记
+function syncMarkers(key, value) {
+    const allMarkers = document.querySelectorAll(`.marker[data-key="${key}"]`);
+    allMarkers.forEach(marker => {
+        if (marker.textContent !== value) {
+            marker.textContent = value;
+        }
+    });
+}
+
+function showScreen(name) {
+    try {
+        const target = screens[name];
+        if (!target) {
+            console.error('showScreen: 未找到页面 "' + name + '"');
+            return;
+        }
+        // 场景过渡：短暂黑闪模拟翻页
+        const flash = document.createElement('div');
+        flash.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9998;pointer-events:none;opacity:0;';
+        document.body.appendChild(flash);
+        requestAnimationFrame(() => {
+            flash.style.transition = 'opacity 0.06s';
+            flash.style.opacity = '1';
+        });
+        setTimeout(() => {
+            flash.style.opacity = '0';
+            setTimeout(() => flash.remove(), 80);
+        }, 70);
+
+        Object.values(screens).forEach(s => {
+            if (s) { s.classList.add("hidden"); s.classList.remove("visible"); }
+        });
+        target.classList.remove("hidden");
+        void target.offsetWidth;
+        target.classList.add("visible");
+        const input = inputs[name];
+        if (input) input.focus();
+        if (name === "info") {
+            checkUnlocks();
+            if (bookContainer) {
+                bookContainer.classList.remove('book-open');
+                void bookContainer.offsetWidth;
+                bookContainer.classList.add('book-open');
+            }
+        } else if (bookContainer) {
+            bookContainer.classList.remove('book-open');
+        }
+
+        if (name === "third" || name === "fourth" || name === "fifth" || name === "sixth" || name === "seventh" || name === "eighth" || name === "ninth" || name === "tenth" || name === "eleventh" || name === "twelfth" || name === "thirteenth" || name === "fourteenth" || name === "fifteenth" || name === "sixteenth") {
+            playPageTurnSound();
+        }
+
+        if (name === "sixth") {
+            const seenKey = 'seenSixthFirstTime';
+            if (localStorage.getItem(seenKey) !== 'true') {
+                localStorage.setItem(seenKey, 'true');
+                setTimeout(() => {
+                    showToastNotification('未知的来信2');
+                }, 3000);
+            }
+        }
+
+        if (name === "story") {
+            animateStoryText();
+        }
+    } catch (e) {
+        console.error('showScreen 出错:', e);
+    }
+}
+
+function checkUnlocks() {
+    if (localStorage.getItem("unlocked1") === "true") {
+        unlockCode1.textContent = CODE1;
+        unlockCode1.classList.remove("hidden");
+    } else {
+        unlockCode1.classList.add("hidden");
+        unlockCode1.textContent = "";
+    }
+    if (localStorage.getItem("unlocked2") === "true") {
+        unlockCode2.textContent = CODE2;
+        unlockCode2.classList.remove("hidden");
+    } else {
+        unlockCode2.classList.add("hidden");
+        unlockCode2.textContent = "";
+    }
+    if (localStorage.getItem("unlocked3") === "true") {
+        unlockCode3.textContent = CODE3;
+        unlockCode3.classList.remove("hidden");
+    } else {
+        unlockCode3.classList.add("hidden");
+        unlockCode3.textContent = "";
+    }
+    if (localStorage.getItem("unlocked4") === "true") {
+        unlockCode4.textContent = CODE4;
+        unlockCode4.classList.remove("hidden");
+    } else {
+        unlockCode4.classList.add("hidden");
+        unlockCode4.textContent = "";
+    }
+    if (localStorage.getItem("unlocked5") === "true") {
+        unlockCode5.textContent = CODE5;
+        unlockCode5.classList.remove("hidden");
+    } else {
+        unlockCode5.classList.add("hidden");
+        unlockCode5.textContent = "";
+    }
+    if (localStorage.getItem("unlocked6") === "true") {
+        unlockCode6.textContent = CODE6;
+        unlockCode6.classList.remove("hidden");
+    } else {
+        unlockCode6.classList.add("hidden");
+        unlockCode6.textContent = "";
+    }
+    if (localStorage.getItem("unlocked7") === "true") {
+        unlockCode7.textContent = CODE7;
+        unlockCode7.classList.remove("hidden");
+    } else {
+        unlockCode7.classList.add("hidden");
+        unlockCode7.textContent = "";
+    }
+    if (localStorage.getItem("unlocked8") === "true") {
+        unlockCode8.textContent = CODE8;
+        unlockCode8.classList.remove("hidden");
+    } else {
+        unlockCode8.classList.add("hidden");
+        unlockCode8.textContent = "";
+    }
+    if (localStorage.getItem("unlocked9") === "true") {
+        unlockCode9.textContent = CODE9;
+        unlockCode9.classList.remove("hidden");
+    } else {
+        unlockCode9.classList.add("hidden");
+        unlockCode9.textContent = "";
+    }
+    if (localStorage.getItem("unlocked10") === "true") {
+        unlockCode10.textContent = CODE10;
+        unlockCode10.classList.remove("hidden");
+    } else {
+        unlockCode10.classList.add("hidden");
+        unlockCode10.textContent = "";
+    }
+    if (localStorage.getItem("unlocked11") === "true") {
+        unlockCode11.textContent = CODE11;
+        unlockCode11.classList.remove("hidden");
+    } else {
+        unlockCode11.classList.add("hidden");
+        unlockCode11.textContent = "";
+    }
+    if (localStorage.getItem("unlocked12") === "true") {
+        unlockCode12.textContent = CODE12;
+        unlockCode12.classList.remove("hidden");
+    } else {
+        unlockCode12.classList.add("hidden");
+        unlockCode12.textContent = "";
+    }
+    if (localStorage.getItem("unlocked13") === "true") {
+        unlockCode13.textContent = CODE13;
+        unlockCode13.classList.remove("hidden");
+    } else {
+        unlockCode13.classList.add("hidden");
+        unlockCode13.textContent = "";
+    }
+    if (localStorage.getItem("unlocked14") === "true") {
+        unlockCode14.textContent = CODE14;
+        unlockCode14.classList.remove("hidden");
+    } else {
+        unlockCode14.classList.add("hidden");
+        unlockCode14.textContent = "";
+    }
+}
+
+function showUnlockMessage() {
+    // 仅在对应页面的提示尚未显示过时才播放一次动画（通过 localStorage 标记）
+    const visibleScreen = Object.values(screens).find(s => s && !s.classList.contains('hidden'));
+    if (!visibleScreen) return;
+    const msg = visibleScreen.querySelector('.unlock-message');
+    if (!msg) return;
+
+    const screenSeenMap = {
+        sixthScreen: 'seenUnlock1',
+        seventhScreen: 'seenUnlock2',
+        thirdScreen: 'seenUnlock3',
+        fourthScreen: 'seenUnlock4',
+        fifthScreen: 'seenUnlock5',
+        eighthScreen: 'seenUnlock6',
+        ninthScreen: 'seenUnlock7',
+        tenthScreen: 'seenUnlock8',
+        eleventhScreen: 'seenUnlock9',
+        twelfthScreen: 'seenUnlock10',
+        thirteenthScreen: 'seenUnlock11',
+        fourteenthScreen: 'seenUnlock12',
+        fifteenthScreen: 'seenUnlock13',
+        sixteenthScreen: 'seenUnlock14'
+    };
+    const seenKey = screenSeenMap[visibleScreen.id];
+    if (seenKey && localStorage.getItem(seenKey) === 'true') return;
+
+    msg.textContent = '*已寻找到新线索*';
+    if (msg._unlockMsgTimeout) { clearTimeout(msg._unlockMsgTimeout); msg._unlockMsgTimeout = null; }
+    msg.style.transition = 'opacity 0.35s ease, visibility 0s linear 0s';
+    msg.style.visibility = 'visible';
+    msg.style.opacity = '0';
+    // 强制回流
+    // eslint-disable-next-line no-unused-expressions
+    msg.offsetWidth;
+    requestAnimationFrame(() => {
+        msg.style.opacity = '1';
+        msg._unlockMsgTimeout = setTimeout(() => {
+            msg.style.opacity = '0';
+            setTimeout(() => {
+                msg.style.visibility = 'hidden';
+                msg.style.transition = '';
+                msg._unlockMsgTimeout = null;
+            }, 360);
+        }, 2200);
+    });
+
+    if (seenKey) localStorage.setItem(seenKey, 'true');
+}
+
+function unlockCode(codeNum) {
+    localStorage.setItem(`unlocked${codeNum}`, "true");
+    checkUnlocks();
+}
+
+function showToastNotification(message) {
+    const toast = document.getElementById('toastNotification');
+    if (!toast) return;
+    
+    toast.textContent = message;
+    toast.classList.add('show');
+    
+    playNotificationSound();
+    
+    toast.onclick = () => {
+        if (message === '未知的来信2') {
+            unlockCode(2);
+            showScreen('seventh');
+            showUnlockMessage();
+            toast.classList.remove('show');
+        }
+    };
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.onclick = null;
+    }, 7000);
+}
+
+function animateStoryText() {
+    const storyContent = document.querySelector('.story-content');
+    if (!storyContent) return;
+
+    // 防止重复执行
+    if (storyContent.dataset.animated === 'true') return;
+    storyContent.dataset.animated = 'true';
+
+    // 保存原始 HTML 以便重置时恢复
+    if (!storyContent.dataset.originalHtml) {
+        storyContent.dataset.originalHtml = storyContent.innerHTML;
+    }
+
+    const paragraphs = storyContent.querySelectorAll('p');
+    const charDelay = 85; // 每个字间隔85ms，模拟打字机节奏
+
+    let charIndex = 0;
+
+    paragraphs.forEach((p) => {
+        const originalNodes = Array.from(p.childNodes);
+        p.innerHTML = '';
+
+        const wrapNode = (node, container) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent;
+                for (const char of text) {
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    span.className = 'story-char';
+                    span.style.animationDelay = `${charIndex * charDelay}ms`;
+                    container.appendChild(span);
+                    charIndex++;
+                }
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                const clone = node.cloneNode(false);
+                container.appendChild(clone);
+                node.childNodes.forEach(child => wrapNode(child, clone));
+            }
+        };
+
+        originalNodes.forEach(node => wrapNode(node, p));
+    });
+}
+
+function initInputs() {
+    unlockCode1.onclick = () => { playPageTurnSound(); showScreen("sixth"); showUnlockMessage(); };
+    unlockCode2.onclick = () => { playPageTurnSound(); showScreen("seventh"); showUnlockMessage(); };
+    unlockCode3.onclick = () => { playPageTurnSound(); showScreen("third"); showUnlockMessage(); };
+    unlockCode4.onclick = () => { playPageTurnSound(); showScreen("fourth"); showUnlockMessage(); };
+    unlockCode5.onclick = () => { playPageTurnSound(); showScreen("fifth"); showUnlockMessage(); };
+    unlockCode6.onclick = () => { playPageTurnSound(); showScreen("eighth"); showUnlockMessage(); };
+    unlockCode7.onclick = () => { playPageTurnSound(); showScreen("ninth"); showUnlockMessage(); };
+    unlockCode8.onclick = () => { playPageTurnSound(); showScreen("tenth"); showUnlockMessage(); };
+    unlockCode9.onclick = () => { playPageTurnSound(); showScreen("eleventh"); showUnlockMessage(); };
+    unlockCode10.onclick = () => { playPageTurnSound(); showScreen("twelfth"); showUnlockMessage(); };
+    unlockCode11.onclick = () => { playPageTurnSound(); showScreen("thirteenth"); showUnlockMessage(); };
+    unlockCode12.onclick = () => { playPageTurnSound(); showScreen("fourteenth"); showUnlockMessage(); };
+    unlockCode13.onclick = () => { playPageTurnSound(); showScreen("fifteenth"); showUnlockMessage(); };
+    unlockCode14.onclick = () => { playPageTurnSound(); showScreen("sixteenth"); showUnlockMessage(); };
+
+    function handleInput(input, page) {
+        input.addEventListener("keydown", e => {
+            if (e.key !== "Enter") return;
+            const cmd = input.value.trim().toLowerCase();
+            input.value = "";
+            // 除了 start 页面外，任何页面输入对应线索都应能跳转到目标页面
+            if (page !== "start") {
+                if (cmd === CODE1.toLowerCase()) {
+                    unlockCode(1);
+                    showScreen("sixth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE2.toLowerCase()) {
+                    unlockCode(2);
+                    showScreen("seventh");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE3.toLowerCase()) {
+                    unlockCode(3);
+                    showScreen("third");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE4.toLowerCase()) {
+                    unlockCode(4);
+                    showScreen("fourth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE5.toLowerCase()) {
+                    unlockCode(5);
+                    showScreen("fifth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE6.toLowerCase()) {
+                    unlockCode(6);
+                    showScreen("eighth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE7.toLowerCase()) {
+                    unlockCode(7);
+                    showScreen("ninth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE8.toLowerCase()) {
+                    unlockCode(8);
+                    showScreen("tenth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE9.toLowerCase()) {
+                    unlockCode(9);
+                    showScreen("eleventh");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE10.toLowerCase()) {
+                    unlockCode(10);
+                    showScreen("twelfth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE11.toLowerCase()) {
+                    unlockCode(11);
+                    showScreen("thirteenth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE12.toLowerCase()) {
+                    unlockCode(12);
+                    showScreen("fourteenth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE13.toLowerCase()) {
+                    unlockCode(13);
+                    showScreen("fifteenth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE14.toLowerCase()) {
+                    unlockCode(14);
+                    showScreen("sixteenth");
+                    showUnlockMessage();
+                    return;
+                }
+            }
+
+            if (cmd === "list" || cmd === "help") {
+                showScreen("info");
+                checkUnlocks();
+                return;
+            }
+
+            if (page === "start" && cmd === "game start") {
+                showScreen("info");
+                checkUnlocks();
+            }
+
+            if (page === "info") {
+                if (cmd === CODE1.toLowerCase()) {
+                    unlockCode(1);
+                    showScreen("sixth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE2.toLowerCase()) {
+                    unlockCode(2);
+                    showScreen("seventh");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE3.toLowerCase()) {
+                    unlockCode(3);
+                    showScreen("third");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE4.toLowerCase()) {
+                    unlockCode(4);
+                    showScreen("fourth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE5.toLowerCase()) {
+                    unlockCode(5);
+                    showScreen("fifth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE6.toLowerCase()) {
+                    unlockCode(6);
+                    showScreen("eighth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE7.toLowerCase()) {
+                    unlockCode(7);
+                    showScreen("ninth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE8.toLowerCase()) {
+                    unlockCode(8);
+                    showScreen("tenth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE9.toLowerCase()) {
+                    unlockCode(9);
+                    showScreen("eleventh");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE10.toLowerCase()) {
+                    unlockCode(10);
+                    showScreen("twelfth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE11.toLowerCase()) {
+                    unlockCode(11);
+                    showScreen("thirteenth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE12.toLowerCase()) {
+                    unlockCode(12);
+                    showScreen("fourteenth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE13.toLowerCase()) {
+                    unlockCode(13);
+                    showScreen("fifteenth");
+                    showUnlockMessage();
+                    return;
+                } else if (cmd === CODE14.toLowerCase()) {
+                    unlockCode(14);
+                    showScreen("sixteenth");
+                    showUnlockMessage();
+                    return;
+                }
+            }
+
+            if (page === "third" && cmd === "back") showScreen("info");
+            if (page === "fourth" && cmd === "back") showScreen("info");
+            if (page === "fifth" && cmd === "back") showScreen("info");
+            if (page === "sixth" && cmd === "back") showScreen("info");
+            if (page === "seventh" && cmd === "back") showScreen("info");
+            if (page === "eighth" && cmd === "back") showScreen("info");
+            if (page === "ninth" && cmd === "back") showScreen("info");
+            if (page === "tenth" && cmd === "back") showScreen("info");
+            if (page === "eleventh" && cmd === "back") showScreen("info");
+            if (page === "twelfth" && cmd === "back") showScreen("info");
+            if (page === "thirteenth" && cmd === "back") showScreen("info");
+            if (page === "fourteenth" && cmd === "back") showScreen("info");
+            if (page === "fifteenth" && cmd === "back") showScreen("info");
+            if (page === "sixteenth" && cmd === "back") showScreen("info");
+            // 输入错误线索时触发红色警告
+            if (cmd && cmd !== "back") {
+                const dangerOverlay = document.getElementById('dangerOverlay');
+                if (dangerOverlay) {
+                    dangerOverlay.classList.remove('hidden');
+                    dangerOverlay.setAttribute('aria-hidden', 'false');
+                    requestAnimationFrame(() => dangerOverlay.classList.add('show'));
+
+                    // 播放恐怖警告音效
+                    playDangerSound();
+
+                    setTimeout(() => {
+                        dangerOverlay.classList.remove('show');
+                        dangerOverlay.setAttribute('aria-hidden', 'true');
+                        setTimeout(() => dangerOverlay.classList.add('hidden'), 220);
+                    }, 1400);
+                }
+                return;
+            }
+
+        });
+    }
+
+    handleInput(inputs.story, "story");
+    handleInput(inputs.info, "info");
+    handleInput(inputs.sixth, "sixth");
+    handleInput(inputs.seventh, "seventh");
+    handleInput(inputs.third, "third");
+    handleInput(inputs.fourth, "fourth");
+    handleInput(inputs.fifth, "fifth");
+    handleInput(inputs.eighth, "eighth");
+    handleInput(inputs.ninth, "ninth");
+    handleInput(inputs.tenth, "tenth");
+    handleInput(inputs.eleventh, "eleventh");
+    handleInput(inputs.twelfth, "twelfth");
+    handleInput(inputs.thirteenth, "thirteenth");
+    handleInput(inputs.fourteenth, "fourteenth");
+    handleInput(inputs.fifteenth, "fifteenth");
+    handleInput(inputs.sixteenth, "sixteenth");
+}
+
+// 恐怖淡出效果：文字模糊暗淡后屏幕不规则闪烁，营造悬疑氛围
+function horrorFadeOut(callback) {
+    const introScreen = document.getElementById('introScreen');
+    const introContent = document.querySelector('.intro-content');
+    const cursor = document.querySelector('.intro-cursor');
+
+    if (!introScreen || !introContent) {
+        if (callback) callback();
+        return;
+    }
+
+    // 隐藏光标
+    if (cursor) cursor.style.opacity = '0';
+    introScreen.style.backgroundColor = '#0a0000';
+
+    // 阶段1：文字剧烈闪烁后消失 (0~0.9s)
+    introContent.style.transition = 'none';
+    const textFlickers = [
+        { t: 30,  o: 0.2, f: 'blur(2px) brightness(0.6)' },
+        { t: 60,  o: 0.9, f: 'blur(0px) brightness(1)' },
+        { t: 100, o: 0.1, f: 'blur(3px) brightness(0.3)' },
+        { t: 140, o: 0.8, f: 'blur(1px) brightness(0.8)' },
+        { t: 180, o: 0.05,f: 'blur(5px) brightness(0.2)' },
+        { t: 220, o: 0.7, f: 'blur(1px) brightness(0.9)' },
+        { t: 270, o: 0.0, f: 'blur(4px) brightness(0.15)' },
+        { t: 320, o: 0.6, f: 'blur(2px) brightness(0.7)' },
+        { t: 360, o: 0.0, f: 'blur(3px) brightness(0.1)' },
+        { t: 420, o: 0.4, f: 'blur(2px) brightness(0.5)' },
+        { t: 470, o: 0.0, f: 'blur(5px) brightness(0.1)' },
+        { t: 530, o: 0.15,f: 'blur(3px) brightness(0.3)' },
+        { t: 580, o: 0.0, f: 'blur(6px) brightness(0)' },
+    ];
+    textFlickers.forEach(({ t, o, f }) => {
+        setTimeout(() => {
+            introContent.style.opacity = String(o);
+            introContent.style.filter = f;
+        }, t);
+    });
+    // 文字最终熄灭
+    setTimeout(() => {
+        introContent.style.transition = 'opacity 0.3s ease-in, filter 0.3s ease-in';
+        introContent.style.opacity = '0';
+        introContent.style.filter = 'blur(6px) brightness(0)';
+    }, 620);
+
+    // 阶段2：屏幕遮罩轻柔过渡 (0.6s ~ 1.5s，降低闪烁强度)
+    setTimeout(() => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:3001;pointer-events:none;opacity:0.35;';
+        document.body.appendChild(overlay);
+
+        // 少量轻柔闪烁，幅度不大
+        const flickers = [
+            { t: 60,  o: 0.55, d: 80 },{ t: 160, o: 0.3, d: 90 },
+            { t: 270, o: 0.5, d: 80 },{ t: 380, o: 0.35, d: 70 },
+            { t: 480, o: 0.55, d: 90 },{ t: 580, o: 0.4, d: 80 },
+        ];
+
+        flickers.forEach(({ t, o, d }) => {
+            setTimeout(() => {
+                overlay.style.transition = `opacity ${d}ms ease-in-out`;
+                overlay.style.opacity = String(o);
+            }, t);
+        });
+
+        // 阶段3：最终熄灭 → 回调
+        setTimeout(() => {
+            overlay.style.transition = 'opacity 0.3s ease-in';
+            overlay.style.opacity = '1';
+            setTimeout(() => {
+                overlay.remove();
+                introContent.style.transition = '';
+                introContent.style.filter = '';
+                introScreen.style.transition = '';
+                introScreen.style.backgroundColor = '';
+                if (cursor) cursor.style.opacity = '';
+                if (callback) callback();
+            }, 350);
+        }, 750);
+    }, 500);
+}
+
+// 粒子消散效果：将开场文字转化为粒子飘散
+function dissipateCharacters(callback) {
+    const introScreen = document.getElementById('introScreen');
+    const introContent = document.querySelector('.intro-content');
+    const cursor = document.querySelector('.intro-cursor');
+
+    if (!introScreen || !introContent) {
+        if (callback) callback();
+        return;
+    }
+
+    // 收集所有已显示的字符元素
+    const charEls = [
+        ...document.querySelectorAll('.intro-char.show'),
+        ...document.querySelectorAll('.intro-subchar.show')
+    ];
+
+    // 创建画布覆盖层
+    const canvas = document.createElement('canvas');
+    canvas.className = 'dissolve-canvas';
+    document.body.appendChild(canvas);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+
+    const particles = [];
+
+    // 为每个字符生成粒子（模拟风吹散效果）
+    charEls.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const area = rect.width * rect.height;
+        const count = Math.max(35, Math.floor(area * 0.8));
+
+        for (let i = 0; i < count; i++) {
+            // 风向偏右上，像微风拂过
+            const windDriftX = 0.15 + Math.random() * 1.0;
+            const windDriftY = -(0.1 + Math.random() * 0.9);
+            const randomSpreadX = (Math.random() - 0.5) * 0.6;
+            const randomSpreadY = (Math.random() - 0.5) * 0.6;
+            // 延迟启动：靠右/靠下的粒子先飘散，形成从边缘开始剥落的感觉
+            const normalizedX = (rect.left + Math.random() * rect.width) / window.innerWidth;
+            const normalizedY = (rect.top + Math.random() * rect.height) / window.innerHeight;
+            const delay = (normalizedX * 0.6 + normalizedY * 0.4) * 1.8; // 0~1.8s 延迟
+            particles.push({
+                x: rect.left + Math.random() * rect.width,
+                y: rect.top + Math.random() * rect.height,
+                originX: rect.left + Math.random() * rect.width,
+                originY: rect.top + Math.random() * rect.height,
+                vx: windDriftX + randomSpreadX,
+                vy: windDriftY + randomSpreadY,
+                size: 1.0 + Math.random() * 2.5,
+                color: Math.random() > 0.2 ? '#ffffff' : '#cccccc',
+                life: 1,
+                decay: 0.0025 + Math.random() * 0.01,
+                delay: delay,
+                started: false
+            });
+        }
+    });
+
+    // 光标也参与消散
+    if (cursor) {
+        const cr = cursor.getBoundingClientRect();
+        for (let i = 0; i < 15; i++) {
+            particles.push({
+                x: cr.left + Math.random() * cr.width,
+                y: cr.top + Math.random() * cr.height,
+                originX: cr.left + Math.random() * cr.width,
+                originY: cr.top + Math.random() * cr.height,
+                vx: 0.15 + Math.random() * 0.7,
+                vy: -(0.15 + Math.random() * 0.7),
+                size: 1 + Math.random() * 1.5,
+                color: '#ffffff',
+                life: 1,
+                decay: 0.004 + Math.random() * 0.012,
+                delay: Math.random() * 1.0,
+                started: false
+            });
+        }
+    }
+
+    // 文字柔和淡出（CSS transition 驱动）
+    introContent.style.transition = 'opacity 2s ease-out';
+    introContent.style.opacity = '0';
+    introScreen.style.background = 'transparent';
+
+    const startTime = performance.now();
+    let animId;
+    function animate(now) {
+        const elapsed = (now - startTime) / 1000;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let alive = 0;
+        for (const p of particles) {
+            // 延迟激活：时间到了才开始飘动
+            if (!p.started) {
+                if (elapsed >= p.delay) {
+                    p.started = true;
+                } else {
+                    // 激活前在原位保持不可见
+                    alive++;
+                    continue;
+                }
+            }
+
+            const activeTime = elapsed - p.delay;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.003;
+            p.vx *= 0.999;
+            p.life -= p.decay;
+
+            if (p.life > 0) {
+                alive++;
+                // 激活后前0.3s粒子淡入，形成柔和过渡
+                const fadeIn = Math.min(activeTime / 0.3, 1);
+                ctx.globalAlpha = Math.min(p.life, 0.85) * fadeIn;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            }
+        }
+
+        if (alive > 0) {
+            animId = requestAnimationFrame(animate);
+        } else {
+            introContent.style.transition = '';
+            canvas.remove();
+            if (callback) callback();
+        }
+    }
+
+    animId = requestAnimationFrame(animate);
+}
+
+// 初始化开场动画
+function initIntroAnimation() {
+    const introScreen = document.getElementById('introScreen');
+    const chars = document.querySelectorAll('.intro-char');
+    const subchars = document.querySelectorAll('.intro-subchar');
+    const cursor = document.querySelector('.intro-cursor');
+    const introText = document.querySelector('.intro-text');
+    const introContent = document.querySelector('.intro-content');
+    
+    if (!introScreen || chars.length === 0 || !cursor || !introText || subchars.length === 0 || !introContent) return;
+    
+    // 初始化光标位置（在主标题第一个字符前面）
+    const textRect = introText.getBoundingClientRect();
+    const contentRect = introContent.getBoundingClientRect();
+    cursor.style.left = (textRect.left - contentRect.left) + 'px';
+    cursor.style.top = (textRect.top - contentRect.top) + 'px'; // 与主标题顶部对齐
+    
+    // 点击开始动画
+    function startAnimation() {
+        if (animationStarted) return;
+        animationStarted = true;
+        
+        // 隐藏提示文字
+        const hint = document.getElementById('introHint');
+        if (hint) hint.style.display = 'none';
+        
+        // 初始化音频上下文
+        initAudioContext();
+        
+        // 移除点击事件监听
+        introScreen.removeEventListener('click', startAnimation);
+        introScreen.style.cursor = 'default';
+        
+        const subtitle = document.querySelector('.intro-subtitle');
+        if (!subtitle) return;
+        
+        // 等待300ms后开始显示第一个字符
+        setTimeout(() => {
+            // 依次显示主标题每个字符（每个字符间隔0.9秒）
+            chars.forEach((char, index) => {
+                setTimeout(() => {
+                    playTypewriterSound(); // 先播放音效
+                    char.classList.add('show'); // 立即显示字符
+                    
+                    // 计算光标应该移动到的位置
+                    const charRect = char.getBoundingClientRect();
+                    const cursorOffset = charRect.right - contentRect.left + 10;
+                    
+                    // 移动光标
+                    cursor.style.left = cursorOffset + 'px';
+                }, index * 900);
+            });
+            
+            // 等待主标题所有字符显示完成后，开始显示副标题
+            const totalCharTime = chars.length * 900;
+            setTimeout(() => {
+                // 将光标移动到副标题开始位置
+                const subtitleRect = subtitle.getBoundingClientRect();
+                const subtitleHeight = subtitleRect.height;
+                const cursorHeight = 24;
+                const verticalOffset = (subtitleHeight - cursorHeight) / 2; // 垂直居中偏移
+                cursor.style.left = (subtitleRect.left - contentRect.left) + 'px';
+                cursor.style.top = (subtitleRect.top - contentRect.top + verticalOffset - 37) + 'px'; // 副标题光标位置
+                cursor.style.height = '24px'; // 缩小光标高度，与副标题字体一致
+                
+                // 依次显示副标题每个字符（每个字符间隔0.4秒）
+                subchars.forEach((char, index) => {
+                    setTimeout(() => {
+                        playTypewriterSound(); // 先播放音效
+                        char.classList.add('show'); // 立即显示字符
+                        
+                        // 计算光标应该移动到的位置
+                        const charRect = char.getBoundingClientRect();
+                        const cursorOffset = charRect.right - contentRect.left + 5;
+                        
+                        // 移动光标
+                        cursor.style.left = cursorOffset + 'px';
+                    }, index * 400);
+                });
+                
+                // 副标题显示完成后，再等待1秒，然后平滑过渡到游戏页面
+                const totalSubCharTime = subchars.length * 400;
+                const waitTime = 1000;
+                
+                setTimeout(() => {
+                    // 恐怖淡出效果过渡到游戏页面
+                    horrorFadeOut(() => {
+                        // 淡出完成后隐藏开场页面
+                        introScreen.classList.add('hidden');
+                        introContent.style.opacity = '';
+                        introContent.style.filter = '';
+                        introScreen.style.background = '';
+
+                        // 淡出完成后再显示开场剧情页面
+                        showScreen('story');
+
+                        // 淡出完成同时停止音效
+                        fadeOutTypewriterSound();
+                    });
+                }, totalSubCharTime + waitTime);
+            }, totalCharTime + 500);
+        }, 300);
+    }
+    
+    // 添加点击开始事件
+    introScreen.addEventListener('click', startAnimation);
+    
+    // 预加载音频文件
+    const preloadAudio = new Audio('music/typewrite.mp3');
+    preloadAudio.load();
+}
+
+// 页面加载时初始化开场动画
+window.addEventListener('load', initIntroAnimation);
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

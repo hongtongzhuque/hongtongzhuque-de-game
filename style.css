@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>键入死亡</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="terminal">
+    <div id="output">
+        <p>正在连接档案系统...</p>
+        <p>输入 <span class="cmd">help</span> 开始。</p>
+    </div>
+
+    <div id="input-line">
+        <span class="prompt">&gt;</span>
+        <input type="text" id="user-input" autofocus />
+    </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
