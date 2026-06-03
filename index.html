@@ -1903,7 +1903,7 @@
 
             <div class="sms-bubble">
                 <div class="sms-text">本次团建共九人，集体坐面包车前往（Bus），先由陈逸舟带领大家前往目的地，社长先去采购一些物资，稍晚一点会和大家回合。</div>
-                <div class="sms-hint">（尝试推理线索输入，如顺序+场景+人物，如：1-BU-01-02-03-05-06-07-08-09）</div>
+                <div class="sms-hint">（尝试推理线索输入，输入线索代码解锁对应剧情页，在线索面板点击任意已解锁线索可直接跳转</div>
                 <div class="sms-text" style="text-align: right; color: #999; margin-top: 8px;">—— 周明朗</div>
             </div>
             <div class="sms-time">15:32</div>
@@ -4448,7 +4448,9 @@ function initInputs() {
     function handleInput(input, page) {
         input.addEventListener("keydown", e => {
             if (e.key !== "Enter") return;
-            const cmd = input.value.trim().toLowerCase();
+            const cmd = input.value.trim().toLowerCase()
+                .replace(/-(zh)-/gi, '-zhou-')
+                .replace(/-(sh)-/gi, '-shen-');
             input.value = "";
             // 除了 start 页面外，任何页面输入对应线索都应能跳转到目标页面
             if (page !== "start") {
